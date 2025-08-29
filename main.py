@@ -43,7 +43,7 @@ def start_driver():
     return driver
 
 def open_main_page(driver):
-    url = "https://billetterie.rcstrasbourgalsace.fr/fr/catalogue"  # Catalogue page with matches
+    url = "https://billetterie.rcstrasbourgalsace.fr/fr/"  # Catalogue page with matches
     driver.get(url)
 
 def check_match_and_reservation(driver):
