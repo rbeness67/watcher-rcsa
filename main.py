@@ -27,9 +27,11 @@ URLS = [
 
 # List of match keywords to monitor (uppercase)
 MATCH_KEYWORDS = [
-    "LE HAVRE",
+    "LIVERPOOL",
     "PARIS",
-    "MONACO",
+    "CHAMPIONS",
+    "CONFERENCE",
+    "CRYSTAL"
 ]
 
 # ===========================
