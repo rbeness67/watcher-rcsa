@@ -23,13 +23,13 @@ URLS = [
     {
         "name": "Racing Club de Strasbourg",
         "url": "https://billetterie.rcstrasbourgalsace.fr/fr/",
-        "match_keywords": ["LE HAVRE", "OLYMPIQUE DE MARSEILLE"],
+        "match_keywords": ["CRYSTAL PALACE", "OLYMPIQUE DE MARSEILLE","conference"],
     },
     # You can add more objects like this:
     {
          "name": "Olympique de Marseille",
          "url": "https://billetterie.om.fr/fr/",
-         "match_keywords": ["Paris", "Ajax","Liverpool","Atalanta","Newcastle"],
+         "match_keywords": ["Paris", "Ajax","Liverpool","Atalanta","Newcastle","Champions"],
     },
 ]
 
