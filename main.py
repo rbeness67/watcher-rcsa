@@ -18,22 +18,19 @@ SENDER_EMAIL = "tickrcsa@gmail.com"
 SENDER_PASSWORD = "mryk fdwy wntl knxo"  # App-specific password
 TO_EMAIL = "tickrcsa@gmail.com"
 
-
-# List of (name, url) to check
+# URLs with individual match keywords
 URLS = [
-    ("RCSA", "https://billetterie.rcstrasbourgalsace.fr/fr/"),
-    ("OM", "https://billetterie.om.fr/fr"),
-]
-
-# List of match keywords to monitor (uppercase)
-MATCH_KEYWORDS = [
-    "LIVERPOOL",
-    "PARIS",
-    "AJAX"
-    "CHAMPIONS",
-    "CONFERENCE",
-    "CRYSTAL",
-    "OLYMPIQUE DE MARSEILLE"
+    {
+        "name": "Racing Club de Strasbourg",
+        "url": "https://billetterie.rcstrasbourgalsace.fr/fr/",
+        "match_keywords": ["LE HAVRE", "OLYMPIQUE DE MARSEILLE"],
+    },
+    # You can add more objects like this:
+    {
+         "name": "Olympique de Marseille",
+         "url": "https://billetterie.om.fr/fr/",
+         "match_keywords": ["Paris", "Ajax","Liverpool","Atalanta","Newcastle"],
+    },
 ]
 
 # ===========================
@@ -69,9 +66,9 @@ def start_driver():
     return driver
 
 
-def check_match_and_reservation(driver, name, url):
+def check_match_and_reservation(driver, config):
     """Check one URL for matches with 'Réserver' available."""
-    driver.get(url)
+    driver.get(config["url"])
     time.sleep(3)  # let page load
 
     found = False
@@ -79,52 +76,45 @@ def check_match_and_reservation(driver, name, url):
         match_cards = driver.find_elements(By.CSS_SELECTOR, 'div[data-component="MatchCard"]')
         for card in match_cards:
             text = card.text.upper()
-            for keyword in MATCH_KEYWORDS:
+            for keyword in config["match_keywords"]:
                 if keyword in text:
                     try:
-                        # Look inside the card actions
-                        actions = card.find_element(By.CSS_SELECTOR, 'div[data-component="MatchCardActions"]')
-
-                        # Case 1: Réserver button exists
-                        reserver_btn = actions.find_elements(By.XPATH, ".//a[contains(text(), 'Réserver')]")
+                        # Look for "Réserver" button inside the card
+                        reserver_btn = card.find_elements(By.XPATH, ".//a[contains(text(), 'Réserver')]")
                         if reserver_btn:
-                            subject = f"🎟️ Tickets Available: {keyword} ({name})"
+                            subject = f"🎟️ Tickets Available: {keyword} ({config['name']})"
                             message = (
                                 f"Match containing '{keyword}' is available!\n\n"
-                                f"📍 Section: {name}\n"
-                                f"🔗 URL: {url}\n\n"
+                                f"📍 Section: {config['name']}\n"
+                                f"🔗 URL: {config['url']}\n\n"
                                 f"Card Text:\n{text}"
                             )
                             send_email_notification(subject, message)
                             found = True
-
-                        # Case 2: Vente fermée → skip silently
                         else:
-                            print(f"⛔ {keyword} found at {name} but sales are closed (Vente fermée).")
-
+                            print(f"⛔ {keyword} found at {config['name']} but no 'Réserver' button.")
                     except Exception as e:
                         print(f"⚠️ Could not parse actions for card: {e}")
                         continue
     except Exception as e:
-        print(f"Error checking {url}: {e}")
+        print(f"Error checking {config['url']}: {e}")
 
     return found
 
 
-
 def attempt_booking(driver):
     while True:
-        for name, url in URLS:
-            print(f"🔍 Checking {name} → {url}...")
-            if check_match_and_reservation(driver, name, url):
-                print(f"✅ Found tickets in {name} ({url})")
+        for config in URLS:
+            print(f"🔍 Checking {config['name']} → {config['url']}...")
+            if check_match_and_reservation(driver, config):
+                print(f"✅ Found tickets in {config['name']}")
         print("⏳ Sleeping 60s before next check...")
         time.sleep(60)
 
 
 def main():
     subject = "🚀 Starting Match Watcher"
-    message = "Now watching these URLs:\n" + "\n".join([f"{name}: {url}" for name, url in URLS])
+    message = "Now watching these URLs:\n" + "\n".join([f"{c['name']}: {c['url']}" for c in URLS])
     send_email_notification(subject, message)
 
     driver = start_driver()
