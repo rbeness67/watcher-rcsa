@@ -29,9 +29,11 @@ URLS = [
 MATCH_KEYWORDS = [
     "LIVERPOOL",
     "PARIS",
+    "AJAX"
     "CHAMPIONS",
     "CONFERENCE",
-    "CRYSTAL"
+    "CRYSTAL",
+    "OLYMPIQUE DE MARSEILLE"
 ]
 
 # ===========================
