@@ -70,7 +70,7 @@ def start_driver():
 
 
 def check_match_and_reservation(driver, name, url):
-    """Check one URL for matches."""
+    """Check one URL for matches with 'Réserver' available."""
     driver.get(url)
     time.sleep(3)  # let page load
 
@@ -82,7 +82,11 @@ def check_match_and_reservation(driver, name, url):
             for keyword in MATCH_KEYWORDS:
                 if keyword in text:
                     try:
-                        reserver_btn = card.find_element(By.XPATH, ".//a[contains(text(), 'Réserver')]")
+                        # Look inside the card actions
+                        actions = card.find_element(By.CSS_SELECTOR, 'div[data-component="MatchCardActions"]')
+
+                        # Case 1: Réserver button exists
+                        reserver_btn = actions.find_elements(By.XPATH, ".//a[contains(text(), 'Réserver')]")
                         if reserver_btn:
                             subject = f"🎟️ Tickets Available: {keyword} ({name})"
                             message = (
@@ -93,12 +97,19 @@ def check_match_and_reservation(driver, name, url):
                             )
                             send_email_notification(subject, message)
                             found = True
-                    except:
+
+                        # Case 2: Vente fermée → skip silently
+                        else:
+                            print(f"⛔ {keyword} found at {name} but sales are closed (Vente fermée).")
+
+                    except Exception as e:
+                        print(f"⚠️ Could not parse actions for card: {e}")
                         continue
     except Exception as e:
         print(f"Error checking {url}: {e}")
 
     return found
+
 
 
 def attempt_booking(driver):
