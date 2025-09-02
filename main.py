@@ -75,9 +75,9 @@ def check_match_and_reservation(driver, config):
     try:
         match_cards = driver.find_elements(By.CSS_SELECTOR, 'div[data-component="MatchCard"]')
         for card in match_cards:
-            text = card.text.upper()
+            text = card.text.upper()  # normalize card text
             for keyword in config["match_keywords"]:
-                if keyword in text:
+                if keyword.upper() in text:  # normalize keyword too
                     try:
                         # Look for "Réserver" button inside the card
                         reserver_btn = card.find_elements(By.XPATH, ".//a[contains(text(), 'Réserver')]")
@@ -98,6 +98,9 @@ def check_match_and_reservation(driver, config):
                         continue
     except Exception as e:
         print(f"Error checking {config['url']}: {e}")
+
+    return found
+
 
     return found
 
