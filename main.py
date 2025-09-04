@@ -23,13 +23,12 @@ URLS = [
     {
         "name": "Racing Club de Strasbourg",
         "url": "https://billetterie.rcstrasbourgalsace.fr/fr/",
-        "match_keywords": ["CRYSTAL PALACE", "OLYMPIQUE DE MARSEILLE","conference"],
+        "match_keywords": ["CRYSTAL PALACE", "OLYMPIQUE DE MARSEILLE", "conference"],
     },
-    # You can add more objects like this:
     {
-         "name": "Olympique de Marseille",
-         "url": "https://billetterie.om.fr/fr/",
-         "match_keywords": [ "Liverpool","Atalanta","Newcastle"],
+        "name": "Olympique de Marseille",
+        "url": "https://billetterie.om.fr/fr/",
+        "match_keywords": ["Liverpool", "Atalanta", "Newcastle"],
     },
 ]
 
@@ -102,15 +101,44 @@ def check_match_and_reservation(driver, config):
     return found
 
 
-    return found
+def check_rcsa_page(driver, config):
+    """Special check for Racing Club de Strasbourg page."""
+    driver.get(config["url"])
+    time.sleep(3)  # let page load
+
+    try:
+        faq_links = driver.find_elements(By.XPATH, '//a[@class="quickNavLink" and contains(text(), "FAQ")]')
+        if not faq_links:
+            subject = f"⚠️ Alert: {config['name']} Page Change"
+            message = (
+                f"The FAQ link is missing on the {config['name']} page.\n\n"
+                f"This might indicate a ticket sale or waiting list.\n\n"
+                f"🔗 URL: {config['url']}"
+            )
+            send_email_notification(subject, message)
+            print(f"🚨 {config['name']} page looks suspicious (FAQ link missing).")
+            return True
+        else:
+            print(f"✅ {config['name']} FAQ link present, page looks normal.")
+    except Exception as e:
+        print(f"⚠️ Could not check FAQ link on {config['name']} page: {e}")
+    
+    return False
 
 
 def attempt_booking(driver):
     while True:
         for config in URLS:
             print(f"🔍 Checking {config['name']} → {config['url']}...")
+
+            # Special check for RCSA
+            if config["name"] == "Racing Club de Strasbourg":
+                check_rcsa_page(driver, config)
+
+            # Regular match & reservation check
             if check_match_and_reservation(driver, config):
                 print(f"✅ Found tickets in {config['name']}")
+
         print("⏳ Sleeping 60s before next check...")
         time.sleep(60)
 
