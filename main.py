@@ -29,7 +29,7 @@ URLS = [
     {
          "name": "Olympique de Marseille",
          "url": "https://billetterie.om.fr/fr/",
-         "match_keywords": [ "Liverpool","Atalanta","Newcastle","Champions"],
+         "match_keywords": [ "Liverpool","Atalanta","Newcastle"],
     },
 ]
 
