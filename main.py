@@ -109,7 +109,7 @@ def check_rcsa_page(driver, config):
     try:
         faq_links = driver.find_elements(By.XPATH, '//a[@class="quickNavLink" and contains(text(), "FAQ")]')
         if not faq_links:
-            subject = f"⚠️ Alert: {config['name']} Page Change"
+            subject = f"⚠️ ALERT: {config['name']} VENTE EN COURS"
             message = (
                 f"The FAQ link is missing on the {config['name']} page.\n\n"
                 f"This might indicate a ticket sale or waiting list.\n\n"
