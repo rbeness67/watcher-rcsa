@@ -23,7 +23,7 @@ URLS = [
     {
         "name": "Racing Club de Strasbourg",
         "url": "https://billetterie.rcstrasbourgalsace.fr/fr/",
-        "match_keywords": ["CRYSTAL PALACE", "OLYMPIQUE DE MARSEILLE", "conference"],
+        "match_keywords": ["CRYSTAL PALACE", "OLYMPIQUE DE MARSEILLE"],
     },
     {
         "name": "Olympique de Marseille",
