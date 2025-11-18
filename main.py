@@ -1,4 +1,5 @@
 import time
+import logging
 import smtplib
 from email.mime.text import MIMEText
 from selenium import webdriver
@@ -7,34 +8,11 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
-# ===========================
-# CONFIGURATION
-# ===========================
-
-# Email credentials
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 SENDER_EMAIL = "tickrcsa@gmail.com"
 SENDER_PASSWORD = "mryk fdwy wntl knxo"  # App-specific password
 TO_EMAIL = "tickrcsa@gmail.com"
-
-# URLs with individual match keywords
-URLS = [
-    {
-        "name": "Racing Club de Strasbourg",
-        "url": "https://billetterie.rcstrasbourgalsace.fr/fr/",
-        "match_keywords": ["CRYSTAL PALACE", "OLYMPIQUE DE MARSEILLE"],
-    },
-    {
-        "name": "Olympique de Marseille",
-        "url": "https://billetterie.om.fr/fr/",
-        "match_keywords": ["Liverpool", "Atalanta", "Newcastle"],
-    },
-]
-
-# ===========================
-# FUNCTIONS
-# ===========================
 
 def send_email_notification(subject, message):
     """Send an email using SMTP."""
@@ -51,8 +29,7 @@ def send_email_notification(subject, message):
             print("📧 Email sent!")
     except Exception as e:
         print(f"Error sending email: {e}")
-    time.sleep(5)
-
+    time.sleep(30)
 
 def start_driver():
     chrome_options = Options()
@@ -64,93 +41,39 @@ def start_driver():
     driver.maximize_window()
     return driver
 
+def open_ticket_page(driver):
+    url = "https://billetterie.rcstrasbourgalsace.fr/fr/acheter/billet-unite-tout-public-racing-crystal-palace-2025-bth8bc0pomoz/list"
+    driver.get(url)
 
-def check_match_and_reservation(driver, config):
-    """Check one URL for matches with 'Réserver' available."""
-    driver.get(config["url"])
-    time.sleep(3)  # let page load
+def is_tickets_available(driver):
+    sections = ["OUEST KOP",]
 
-    found = False
-    try:
-        match_cards = driver.find_elements(By.CSS_SELECTOR, 'div[data-component="MatchCard"]')
-        for card in match_cards:
-            text = card.text.upper()  # normalize card text
-            for keyword in config["match_keywords"]:
-                if keyword.upper() in text:  # normalize keyword too
-                    try:
-                        # Look for "Réserver" button inside the card
-                        reserver_btn = card.find_elements(By.XPATH, ".//a[contains(text(), 'Réserver')]")
-                        if reserver_btn:
-                            subject = f"🎟️ Tickets Available: {keyword} ({config['name']})"
-                            message = (
-                                f"Match containing '{keyword}' is available!\n\n"
-                                f"📍 Section: {config['name']}\n"
-                                f"🔗 URL: {config['url']}\n\n"
-                                f"Card Text:\n{text}"
-                            )
-                            send_email_notification(subject, message)
-                            found = True
-                        else:
-                            print(f"⛔ {keyword} found at {config['name']} but no 'Réserver' button.")
-                    except Exception as e:
-                        print(f"⚠️ Could not parse actions for card: {e}")
-                        continue
-    except Exception as e:
-        print(f"Error checking {config['url']}: {e}")
-
-    return found
-
-
-def check_rcsa_page(driver, config):
-    """Special check for Racing Club de Strasbourg page."""
-    driver.get(config["url"])
-    time.sleep(3)  # let page load
-
-    try:
-        faq_links = driver.find_elements(By.XPATH, '//a[@class="quickNavLink" and contains(text(), "FAQ")]')
-        if not faq_links:
-            subject = f"⚠️ ALERT: {config['name']} VENTE EN COURS"
-            message = (
-                f"The FAQ link is missing on the {config['name']} page.\n\n"
-                f"This might indicate a ticket sale or waiting list.\n\n"
-                f"🔗 URL: {config['url']}"
-            )
+    for section in sections:
+        try:
+            button = driver.find_element(By.XPATH, f"//button[.//b[contains(text(), '{section}')]]")
+            button.click()
+            subject = "🎫 Billets disponibles UNITE Crystal Palace!"
+            message = f"Tickets trouvés pour CP dans la section {section} !"
             send_email_notification(subject, message)
-            print(f"🚨 {config['name']} page looks suspicious (FAQ link missing).")
-            return True
-        else:
-            print(f"✅ {config['name']} FAQ link present, page looks normal.")
-    except Exception as e:
-        print(f"⚠️ Could not check FAQ link on {config['name']} page: {e}")
-    
-    return False
-
+            return False
+        except:
+            continue
 
 def attempt_booking(driver):
     while True:
-        for config in URLS:
-            print(f"🔍 Checking {config['name']} → {config['url']}...")
+        is_tickets_available(driver)
+        time.sleep(15)
+        driver.refresh()
 
-            # Special check for RCSA
-            if config["name"] == "Racing Club de Strasbourg":
-                check_rcsa_page(driver, config)
-
-            # Regular match & reservation check
-            if check_match_and_reservation(driver, config):
-                print(f"✅ Found tickets in {config['name']}")
-
-        print("⏳ Sleeping 60s before next check...")
-        time.sleep(60)
 
 
 def main():
-    subject = "🚀 Starting Match Watcher"
-    message = "Now watching these URLs:\n" + "\n".join([f"{c['name']}: {c['url']}" for c in URLS])
+    subject = "LANCEMENT UNITE RCSA CRYSTAL PALACE !"
+    message = f"Début du watch des tickets de Crystal Palace !"
     send_email_notification(subject, message)
-
     driver = start_driver()
+    open_ticket_page(driver)
     attempt_booking(driver)
-
 
 if __name__ == "__main__":
     main()
